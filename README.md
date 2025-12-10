@@ -5,7 +5,7 @@
 ## 安裝
 1. **設定資料來源**
    - 將 `.env.example` 複製為 `.env`，填入 `ORDER_SOURCE_URL`（必填，指向 Vercel 上的訂單 JSON 端點）。
-   - 可選 `ORDER_UPDATE_URL` 供未來更新訂單狀態之用。
+   - 如需從桌面端更新訂單狀態，填入 `ORDER_UPDATE_URL`（POST JSON：`{ id, status }`）。
 2. 安裝依賴：`npm install`
 3. 啟動：`npm start`
 4. Windows 會自動將應用加入「開機自動啟動」（AutoLaunch）。UI 內亦可勾選開關。
@@ -13,15 +13,14 @@
 ## 功能
 - 依 `POLL_INTERVAL_MS`（預設 30 秒）向 `ORDER_SOURCE_URL` 取回訂單陣列，對新出現的訂單發送 Toast。
 - 點擊通知可開啟訂單的 `url/link`（若來源提供）。
-- 訂單更新功能暫未實作；`ORDER_UPDATE_URL` 為未來擴充預留。
+- 若設定 `ORDER_UPDATE_URL`，可在通知/列表按鈕直接更新訂單狀態（POST `{ id, status }`）。
 
 ## 檔案
 - `index.js`：Electron 主行程、托盤、IPC。
 - `poller.js`：輪詢與去重。
-- `notifier.js`：系統通知；若提供 `ORDER_UPDATE_URL` 可在此擴充更新邏輯。
+- `notifier.js`：系統通知與訂單狀態更新呼叫。
 - `lib/order-source.js`：由外部網址抓取訂單。
 - `renderer/`：視窗 UI（顯示最新訂單、開機自啟動控制）。
 
 ## 待辦
-- 串接 `ORDER_UPDATE_URL` 以支援在通知中更新狀態。
 - 增加 webhook/push 模式，降低輪詢延遲。

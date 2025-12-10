@@ -1,4 +1,5 @@
 const { Notification, shell } = require('electron');
+const axios = require('axios');
 
 const UPDATE_API_URL = process.env.ORDER_UPDATE_URL || '';
 const CAN_UPDATE = Boolean(UPDATE_API_URL);
@@ -48,10 +49,21 @@ async function handleOrderAction(order, status, sendFeedback) {
     sendFeedback(message);
     throw new Error(message);
   }
-  // 若未來需要實作更新，可在此呼叫後端 API。
-  const message = '更新 API 未實作';
-  sendFeedback(message);
-  throw new Error(message);
+
+  try {
+    const resp = await axios.post(UPDATE_API_URL, { id: order.id, status }, { timeout: 10000 });
+    if (resp.status >= 400) throw new Error(`HTTP ${resp.status}`);
+    sendFeedback(`訂單 #${order.id} 已更新為 ${status}`);
+    return resp.data;
+  } catch (error) {
+    let message = error.message || '更新失敗';
+    if (axios.isAxiosError(error)) {
+      const apiMsg = error.response && error.response.data && (error.response.data.message || error.response.data.error);
+      message = apiMsg || message;
+    }
+    sendFeedback(`訂單 #${order.id} 更新失敗：${message}`);
+    throw new Error(message);
+  }
 }
 
 module.exports = {
