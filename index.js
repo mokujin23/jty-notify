@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const keytar = require('keytar');
+const AutoLaunch = require('auto-launch');
 const Store = require('electron-store');
 const { OrderPoller } = require('./poller');
 const { showOrderNotification, handleOrderAction } = require('./notifier');
@@ -11,6 +12,7 @@ const { showOrderNotification, handleOrderAction } = require('./notifier');
 const store = new Store({ name: 'settings' });
 let mainWindow;
 let tray;
+let autoLauncher;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -33,6 +35,25 @@ function createTray() {
   ]);
   tray.setToolTip('Woo 訂單通知');
   tray.setContextMenu(contextMenu);
+}
+
+async function ensureAutoLaunch() {
+  if (process.platform !== 'win32') return;
+  if (!autoLauncher) {
+    autoLauncher = new AutoLaunch({
+      name: 'jty-notify',
+      path: process.execPath,
+      isHidden: true
+    });
+  }
+  try {
+    const enabled = await autoLauncher.isEnabled();
+    if (!enabled) {
+      await autoLauncher.enable();
+    }
+  } catch (err) {
+    console.warn('[autolaunch] 設定開機啟動失敗', err);
+  }
 }
 
 const CRED_SERVICE = 'jty-notify';
@@ -134,6 +155,7 @@ app.whenReady().then(async () => {
     app.quit();
     return;
   }
+  await ensureAutoLaunch();
   createWindow();
   createTray();
 

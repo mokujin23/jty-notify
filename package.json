@@ -10,6 +10,7 @@
     "dist": "electron-builder --win --x64"
   },
   "dependencies": {
+    "auto-launch": "^5.0.6",
     "axios": "^1.7.4",
     "dotenv": "^16.4.5",
     "electron-store": "^11.0.2",
