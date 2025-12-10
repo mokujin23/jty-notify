@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Woo 訂單通知</title>
+    <style>
+      body { font-family: "Segoe UI", sans-serif; margin: 12px; }
+      #orders { display: flex; flex-direction: column; gap: 8px; }
+      .card { border: 1px solid #ddd; padding: 8px; border-radius: 6px; }
+      .row { display: flex; justify-content: space-between; align-items: center; }
+      button { margin-left: 4px; }
+      #toast { color: #0a7; margin-bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <h2>最新訂單</h2>
+    <div id="toast"></div>
+    <div id="orders"></div>
+    <script src="./preload.js"></script>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
