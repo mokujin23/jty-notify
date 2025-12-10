@@ -9,12 +9,7 @@
 2. 安裝依賴：`npm install`
 3. 啟動：`npm start`
 4. Windows 會自動將應用加入「開機自動啟動」（透過 AutoLaunch）。如需關閉，可手動移除工作排程或在程式碼中停用。
-
-## 打包分發 (Windows exe)
-1. 準備應用圖示 `build/icon.ico`（256x256 建議）。
-2. 先安裝依賴：`npm install`
-3. 執行：`npm run dist`
-   - 產出在 `dist/` 下的 NSIS 安裝程式（預設可選路徑、非 one-click）。
+5. UI 內提供「開機自動啟動」勾選，可隨時開關，設定會同步到 AutoLaunch。
 
 ## 功能
 - 30 秒輪詢 `pending/processing` 訂單並發送 Toast。

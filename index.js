@@ -37,8 +37,8 @@ function createTray() {
   tray.setContextMenu(contextMenu);
 }
 
-async function ensureAutoLaunch() {
-  if (process.platform !== 'win32') return;
+function ensureAutoLaunchInstance() {
+  if (process.platform !== 'win32') return null;
   if (!autoLauncher) {
     autoLauncher = new AutoLaunch({
       name: 'jty-notify',
@@ -46,14 +46,33 @@ async function ensureAutoLaunch() {
       isHidden: true
     });
   }
-  try {
-    const enabled = await autoLauncher.isEnabled();
-    if (!enabled) {
-      await autoLauncher.enable();
-    }
-  } catch (err) {
-    console.warn('[autolaunch] 設定開機啟動失敗', err);
+  return autoLauncher;
+}
+
+async function setAutoLaunch(enabled) {
+  if (process.platform !== 'win32') {
+    store.set('autoLaunch', enabled);
+    return enabled;
   }
+  const launcher = ensureAutoLaunchInstance();
+  try {
+    if (enabled) {
+      await launcher.enable();
+    } else {
+      await launcher.disable();
+    }
+    store.set('autoLaunch', enabled);
+    return enabled;
+  } catch (err) {
+    console.warn('[autolaunch] 設定失敗', err);
+    throw err;
+  }
+}
+
+async function initAutoLaunch() {
+  const desired = store.get('autoLaunch', true);
+  await setAutoLaunch(desired);
+  return desired;
 }
 
 const CRED_SERVICE = 'jty-notify';
@@ -155,7 +174,7 @@ app.whenReady().then(async () => {
     app.quit();
     return;
   }
-  await ensureAutoLaunch();
+  await initAutoLaunch();
   createWindow();
   createTray();
 
@@ -175,6 +194,23 @@ app.whenReady().then(async () => {
     return handleOrderAction({ id: orderId }, status, (msg) => {
       if (mainWindow) mainWindow.webContents.send('toast', msg);
     });
+  });
+
+  ipcMain.handle('autolaunch:get', async () => {
+    if (process.platform !== 'win32') return false;
+    const launcher = ensureAutoLaunchInstance();
+    try {
+      const isEnabled = await launcher.isEnabled();
+      store.set('autoLaunch', isEnabled);
+      return isEnabled;
+    } catch (err) {
+      return store.get('autoLaunch', false);
+    }
+  });
+
+  ipcMain.handle('autolaunch:set', async (_event, enabled) => {
+    await setAutoLaunch(Boolean(enabled));
+    return enabled;
   });
 });
 

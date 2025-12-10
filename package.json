@@ -6,43 +6,16 @@
   "scripts": {
     "start": "electron .",
     "dev": "ELECTRON_ENABLE_LOGGING=1 electron .",
-    "lint": "node -e \"console.log('lint placeholder')\"",
-    "dist": "electron-builder --win --x64"
+    "lint": "node -e \"console.log('lint placeholder')\""
   },
   "dependencies": {
     "auto-launch": "^5.0.6",
     "axios": "^1.7.4",
     "dotenv": "^16.4.5",
-    "electron-store": "^11.0.2",
+    "electron-store": "^8.1.0",
     "keytar": "^7.9.0"
   },
   "devDependencies": {
-    "electron": "^32.1.0",
-    "electron-builder": "^25.1.6"
-  },
-  "build": {
-    "appId": "com.jty.notify",
-    "productName": "JTY Woo Notify",
-    "files": [
-      "index.js",
-      "poller.js",
-      "notifier.js",
-      "lib/**/*",
-      "renderer/**/*",
-      "package.json"
-    ],
-    "directories": {
-      "buildResources": "build",
-      "output": "dist"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "build/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true
-    }
+    "electron": "^32.1.0"
   }
 }
