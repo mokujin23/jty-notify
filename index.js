@@ -28,6 +28,7 @@ function resolveTrayIcon() {
   if (process.platform !== 'win32') return undefined;
   const candidates = [
     path.join(__dirname, 'Babasse-Old-School-Old-Messenger.ico'),
+    path.join(__dirname, 'renderer', 'Babasse-Old-School-Old-Messenger.ico'),
     path.join(__dirname, 'renderer', 'icon.ico'),
     path.join(process.resourcesPath || '', 'icon.ico'),
     path.join(process.resourcesPath || '', 'renderer', 'icon.ico')
@@ -38,7 +39,7 @@ function resolveTrayIcon() {
 function createTray() {
   const iconPath = resolveTrayIcon();
   if (!iconPath) {
-    console.warn('[tray] 找不到 icon.ico，跳過托盤建立');
+    console.warn('[tray] icon not found, skipping tray creation');
     return;
   }
   try {
