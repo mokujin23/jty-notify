@@ -1,7 +1,7 @@
 const ordersEl = document.getElementById('orders');
 const toastEl = document.getElementById('toast');
 const autoLaunchEl = document.getElementById('autoLaunchToggle');
-const state = { items: [] };
+const state = { items: [], canUpdate: false };
 
 function render() {
   ordersEl.innerHTML = '';
@@ -11,17 +11,21 @@ function render() {
     const row = document.createElement('div');
     row.className = 'row';
     row.innerHTML = `<div>#${order.id} - ${order.status}</div><div>${order.total} ${order.currency}</div>`;
-    const actions = document.createElement('div');
-    const doneBtn = document.createElement('button');
-    doneBtn.textContent = '完成';
-    doneBtn.onclick = () => update(order, 'completed');
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '取消';
-    cancelBtn.onclick = () => update(order, 'cancelled');
-    actions.appendChild(doneBtn);
-    actions.appendChild(cancelBtn);
-    card.appendChild(row);
-    card.appendChild(actions);
+    if (state.canUpdate) {
+      const actions = document.createElement('div');
+      const doneBtn = document.createElement('button');
+      doneBtn.textContent = '完成';
+      doneBtn.onclick = () => update(order, 'completed');
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = '取消';
+      cancelBtn.onclick = () => update(order, 'cancelled');
+      actions.appendChild(doneBtn);
+      actions.appendChild(cancelBtn);
+      card.appendChild(row);
+      card.appendChild(actions);
+    } else {
+      card.appendChild(row);
+    }
     ordersEl.appendChild(card);
   });
 }
@@ -66,3 +70,15 @@ async function initAutoLaunchToggle() {
 }
 
 initAutoLaunchToggle();
+
+async function initCapabilities() {
+  try {
+    const caps = await window.wooNotify.getCapabilities();
+    state.canUpdate = Boolean(caps && caps.canUpdateOrders);
+  } catch (_) {
+    state.canUpdate = false;
+  }
+  render();
+}
+
+initCapabilities();

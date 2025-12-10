@@ -1,4 +1,4 @@
-const { wooApi } = require('./lib/woocommerce');
+const { fetchOrders } = require('./lib/order-source');
 
 const DEFAULT_INTERVAL = Number(process.env.POLL_INTERVAL_MS || 30000);
 
@@ -6,8 +6,8 @@ class OrderPoller {
   constructor(notifyFn) {
     this.notifyFn = notifyFn;
     this.intervalId = null;
-    this.lastChecked = null;
     this.seen = new Set();
+    this.initialized = false;
   }
 
   start() {
@@ -23,18 +23,17 @@ class OrderPoller {
 
   async tick() {
     try {
-      const params = this.lastChecked
-        ? { modified_after: this.lastChecked.toISOString() }
-        : undefined;
-      const orders = await wooApi.getOrders(params);
+      const orders = await fetchOrders();
       if (!Array.isArray(orders)) return;
       orders.forEach((order) => {
         if (!order || !order.id) return;
         if (this.seen.has(order.id)) return;
         this.seen.add(order.id);
-        this.notifyFn(order);
+        if (this.initialized) {
+          this.notifyFn(order);
+        }
       });
-      this.lastChecked = new Date();
+      this.initialized = true;
     } catch (error) {
       console.error('[poller] 無法抓取訂單', error.message);
     }

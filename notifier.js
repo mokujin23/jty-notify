@@ -1,5 +1,7 @@
 const { Notification, shell } = require('electron');
-const { wooApi } = require('./lib/woocommerce');
+
+const UPDATE_API_URL = process.env.ORDER_UPDATE_URL || '';
+const CAN_UPDATE = Boolean(UPDATE_API_URL);
 
 function showOrderNotification(order, onAction) {
   const title = `新訂單 #${order.id} (${order.status})`;
@@ -7,16 +9,21 @@ function showOrderNotification(order, onAction) {
     ? `${order.billing.first_name} - ${order.total} ${order.currency}`
     : `金額 ${order.total} ${order.currency}`;
 
-  const notification = new Notification({
+  const options = {
     title,
     body,
     silent: false,
-    actions: [
+    closeButtonText: '忽略'
+  };
+
+  if (CAN_UPDATE) {
+    options.actions = [
       { type: 'button', text: '標記完成' },
       { type: 'button', text: '取消訂單' }
-    ],
-    closeButtonText: '忽略'
-  });
+    ];
+  }
+
+  const notification = new Notification(options);
 
   notification.on('action', async (_, index) => {
     if (index === 0) {
@@ -27,8 +34,8 @@ function showOrderNotification(order, onAction) {
   });
 
   notification.on('click', () => {
-    if (order.id) {
-      shell.openExternal(`${process.env.WOOCOMMERCE_URL}/wp-admin/post.php?post=${order.id}&action=edit`);
+    if (order.url) {
+      shell.openExternal(order.url);
     }
   });
 
@@ -36,17 +43,19 @@ function showOrderNotification(order, onAction) {
 }
 
 async function handleOrderAction(order, status, sendFeedback) {
-  try {
-    const updated = await wooApi.updateOrderStatus(order.id, status);
-    sendFeedback(`訂單 #${order.id} 已更新為 ${status}`);
-    return updated;
-  } catch (error) {
-    sendFeedback(`訂單 #${order.id} 更新失敗：${error.message}`);
-    throw error;
+  if (!CAN_UPDATE) {
+    const message = '目前未設定訂單更新 API，僅提供通知';
+    sendFeedback(message);
+    throw new Error(message);
   }
+  // 若未來需要實作更新，可在此呼叫後端 API。
+  const message = '更新 API 未實作';
+  sendFeedback(message);
+  throw new Error(message);
 }
 
 module.exports = {
   showOrderNotification,
-  handleOrderAction
+  handleOrderAction,
+  CAN_UPDATE
 };

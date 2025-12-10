@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('wooNotify', {
   onToast: (cb) => ipcRenderer.on('toast', (_event, msg) => cb(msg)),
   updateOrder: (orderId, status) => ipcRenderer.invoke('order:update', orderId, status),
   getAutoLaunch: () => ipcRenderer.invoke('autolaunch:get'),
-  setAutoLaunch: (enabled) => ipcRenderer.invoke('autolaunch:set', enabled)
+  setAutoLaunch: (enabled) => ipcRenderer.invoke('autolaunch:set', enabled),
+  getCapabilities: () => ipcRenderer.invoke('app:capabilities')
 });
