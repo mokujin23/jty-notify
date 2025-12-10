@@ -13,6 +13,7 @@ const store = new Store({ name: 'settings' });
 let mainWindow;
 let tray;
 let autoLauncher;
+let poller;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -149,7 +150,7 @@ app.whenReady().then(async () => {
   createWindow();
   createTray();
 
-  const poller = new OrderPoller(
+  poller = new OrderPoller(
     (order) => {
       showOrderNotification(order, (targetOrder, nextStatus) => {
         handleOrderAction(targetOrder, nextStatus, (msg) => {
@@ -195,6 +196,11 @@ app.whenReady().then(async () => {
   ipcMain.handle('app:capabilities', async () => ({
     canUpdateOrders: CAN_UPDATE
   }));
+
+  ipcMain.handle('orders:refresh', async () => {
+    if (poller) await poller.refresh();
+    return true;
+  });
 });
 
 app.on('window-all-closed', () => {

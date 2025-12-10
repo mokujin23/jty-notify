@@ -38,9 +38,11 @@ function render() {
 }
 
 function update(order, status) {
-  window.wooNotify.updateOrder(order.id, status).catch((err) => {
-    showToast(err.message || '更新失敗');
-  });
+  window.wooNotify.updateOrder(order.id, status)
+    .then(() => window.wooNotify.refreshOrders().catch(() => {}))
+    .catch((err) => {
+      showToast(err.message || '更新失敗');
+    });
 }
 
 function showToast(msg) {
@@ -113,6 +115,9 @@ function renderStatus() {
   if (st.state === 'fetching') text = '狀態：讀取中...';
   if (st.state === 'ok') text = `狀態：連線正常（${st.count || 0} 筆），時間 ${timeText}`;
   if (st.state === 'error') text = `狀態：錯誤 - ${st.message || '未知'} (${timeText})`;
+  if (st.state === 'idle' && st.window === 'off') {
+    text = `狀態：休眠中（輪詢時段 ${process.env.POLL_START_HOUR || 7}:00 - ${process.env.POLL_END_HOUR || 22}:00）`;
+  }
   statusEl.textContent = text;
 }
 

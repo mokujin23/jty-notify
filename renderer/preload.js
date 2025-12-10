@@ -8,5 +8,6 @@ contextBridge.exposeInMainWorld('wooNotify', {
   updateOrder: (orderId, status) => ipcRenderer.invoke('order:update', orderId, status),
   getAutoLaunch: () => ipcRenderer.invoke('autolaunch:get'),
   setAutoLaunch: (enabled) => ipcRenderer.invoke('autolaunch:set', enabled),
-  getCapabilities: () => ipcRenderer.invoke('app:capabilities')
+  getCapabilities: () => ipcRenderer.invoke('app:capabilities'),
+  refreshOrders: () => ipcRenderer.invoke('orders:refresh')
 });

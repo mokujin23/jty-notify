@@ -1,6 +1,8 @@
 const { fetchOrders } = require('./lib/order-source');
 
-const DEFAULT_INTERVAL = Number(process.env.POLL_INTERVAL_MS || 30000);
+const DEFAULT_INTERVAL = Number(process.env.POLL_INTERVAL_MS || 60000);
+const START_HOUR = Number(process.env.POLL_START_HOUR || 7); // inclusive
+const END_HOUR = Number(process.env.POLL_END_HOUR || 22); // exclusive
 
 class OrderPoller {
   constructor(notifyFn, statusFn = () => {}, snapshotFn = () => {}) {
@@ -23,9 +25,19 @@ class OrderPoller {
     this.intervalId = null;
   }
 
+  async refresh() {
+    await this.tick(true);
+  }
+
   async tick() {
     try {
-      this.statusFn({ state: 'fetching', ts: Date.now() });
+      const now = new Date();
+      const hour = now.getHours();
+      if (hour < START_HOUR || hour >= END_HOUR) {
+        this.statusFn({ state: 'idle', window: 'off', start: START_HOUR, end: END_HOUR, ts: now.getTime() });
+        return;
+      }
+      this.statusFn({ state: 'fetching', ts: now.getTime() });
       const orders = await fetchOrders();
       if (!Array.isArray(orders)) return;
       this.snapshotFn(orders);
