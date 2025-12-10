@@ -6,12 +6,14 @@
 1. **設定資料來源**
    - 將 `.env.example` 複製為 `.env`，填入 `ORDER_SOURCE_URL`（必填，指向 Vercel 上的訂單 JSON 端點）。
    - 如需從桌面端更新訂單狀態，填入 `ORDER_UPDATE_URL`（POST JSON：`{ id, status }`）。
+   - 輪詢預設每分鐘一次，僅在 7:00~22:00 間執行，可用 `POLL_INTERVAL_MS`、`POLL_START_HOUR`、`POLL_END_HOUR` 覆寫。
 2. 安裝依賴：`npm install`
 3. 啟動：`npm start`
 4. Windows 會自動將應用加入「開機自動啟動」（AutoLaunch）。UI 內亦可勾選開關。
 
 ## 功能
 - 依 `POLL_INTERVAL_MS`（預設 30 秒）向 `ORDER_SOURCE_URL` 取回訂單陣列，對新出現的訂單發送 Toast。
+- 輪詢僅在設定時段內執行（預設 07:00-22:00），休眠時顯示狀態提示。
 - 點擊通知可開啟訂單的 `url/link`（若來源提供）。
 - 若設定 `ORDER_UPDATE_URL`，可在通知/列表按鈕直接更新訂單狀態（POST `{ id, status }`）。
 
