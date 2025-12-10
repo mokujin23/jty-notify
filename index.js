@@ -7,6 +7,7 @@ const AutoLaunch = require('auto-launch');
 const Store = require('electron-store');
 const { OrderPoller } = require('./poller');
 const { showOrderNotification, handleOrderAction, CAN_UPDATE } = require('./notifier');
+const { ORDER_SOURCE_URL } = require('./lib/order-source');
 
 const store = new Store({ name: 'settings' });
 let mainWindow;
@@ -148,16 +149,24 @@ app.whenReady().then(async () => {
   createWindow();
   createTray();
 
-  const poller = new OrderPoller((order) => {
-    showOrderNotification(order, (targetOrder, nextStatus) => {
-      handleOrderAction(targetOrder, nextStatus, (msg) => {
-        if (mainWindow) mainWindow.webContents.send('toast', msg);
-      }).catch(() => {});
-    });
-    if (mainWindow) {
-      mainWindow.webContents.send('order:new', order);
+  const poller = new OrderPoller(
+    (order) => {
+      showOrderNotification(order, (targetOrder, nextStatus) => {
+        handleOrderAction(targetOrder, nextStatus, (msg) => {
+          if (mainWindow) mainWindow.webContents.send('toast', msg);
+        }).catch(() => {});
+      });
+      if (mainWindow) {
+        mainWindow.webContents.send('order:new', order);
+      }
+    },
+    (status) => {
+      if (mainWindow) mainWindow.webContents.send('status:update', status);
+    },
+    (orders) => {
+      if (mainWindow) mainWindow.webContents.send('orders:snapshot', orders);
     }
-  });
+  );
   poller.start();
 
   ipcMain.handle('order:update', async (_event, orderId, status) => {

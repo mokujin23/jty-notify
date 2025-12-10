@@ -1,10 +1,17 @@
 const ordersEl = document.getElementById('orders');
 const toastEl = document.getElementById('toast');
+const statusEl = document.getElementById('status');
 const autoLaunchEl = document.getElementById('autoLaunchToggle');
-const state = { items: [], canUpdate: false };
+const state = { items: [], canUpdate: false, status: { state: 'idle' } };
 
 function render() {
   ordersEl.innerHTML = '';
+  if (!state.items.length) {
+    const empty = document.createElement('div');
+    empty.textContent = '目前沒有訂單。';
+    empty.style.color = '#666';
+    ordersEl.appendChild(empty);
+  }
   state.items.slice(0, 20).forEach((order) => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -44,8 +51,22 @@ function showToast(msg) {
 }
 
 window.wooNotify.onNewOrder((order) => {
+  const existingIdx = state.items.findIndex((o) => o.id === order.id);
+  if (existingIdx >= 0) {
+    state.items.splice(existingIdx, 1);
+  }
   state.items.unshift(order);
   render();
+});
+
+window.wooNotify.onOrders((orders) => {
+  state.items = orders || [];
+  render();
+});
+
+window.wooNotify.onStatus((st) => {
+  state.status = st || { state: 'idle' };
+  renderStatus();
 });
 
 window.wooNotify.onToast((msg) => showToast(msg));
@@ -82,3 +103,17 @@ async function initCapabilities() {
 }
 
 initCapabilities();
+
+function renderStatus() {
+  if (!statusEl) return;
+  const st = state.status || {};
+  const ts = st.ts ? new Date(st.ts) : null;
+  const timeText = ts ? ts.toLocaleTimeString() : '';
+  let text = '狀態：待機';
+  if (st.state === 'fetching') text = '狀態：讀取中...';
+  if (st.state === 'ok') text = `狀態：連線正常（${st.count || 0} 筆），時間 ${timeText}`;
+  if (st.state === 'error') text = `狀態：錯誤 - ${st.message || '未知'} (${timeText})`;
+  statusEl.textContent = text;
+}
+
+renderStatus();
